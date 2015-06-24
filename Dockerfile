@@ -1,6 +1,6 @@
 FROM jamesdbloom/docker-java8-maven
 
-MAINTAINER Andy Ai "yanbo.ai@qunar.com"
+MAINTAINER Andy Ai "yanbo.ai@gmail.com"
 
 WORKDIR /code
 
