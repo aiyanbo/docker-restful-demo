@@ -15,6 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>4.12</junit.version>
         <jersey.version>2.18</jersey.version>
+        <etcd4j.version>2.7.0</etcd4j.version>
         <javax.servlet.version>3.1.0</javax.servlet.version>
     </properties>
 
@@ -36,6 +37,12 @@
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>${jersey.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mousio</groupId>
+            <artifactId>etcd4j</artifactId>
+            <version>${etcd4j.version}</version>
         </dependency>
 
     </dependencies>

@@ -1,18 +1,15 @@
 package org.jmotor;
 
+import mousio.etcd4j.EtcdClient;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URI;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Enumeration;
+import java.util.UUID;
 
 /**
  * Component:
@@ -40,13 +37,17 @@ public class StackMicroServices {
         });
         try {
             server.start();
+            final String instanceId = UUID.randomUUID().toString();
+            final String serviceInstanceKey = "registry/stacks/v1/" + instanceId;
+            final EtcdClient etcd = new EtcdClient(UriBuilder.fromUri("http://192.168.59.103/").port(4001).build());
+            etcd.put(serviceInstanceKey, "http://" + host + ":9998/").send();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
     }
 
-    private static InetAddress localInet4Address() throws SocketException {
+    public static InetAddress localInet4Address() throws SocketException {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
             NetworkInterface networkInterface = networkInterfaces.nextElement();
