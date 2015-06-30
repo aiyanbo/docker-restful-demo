@@ -41,8 +41,8 @@ public class StackMicroServices {
             public void run() {
                 server.shutdown();
                 try {
-                    etcd.delete(serviceInstanceKey).send();
-                } catch (IOException e) {
+                    etcd.delete(serviceInstanceKey).send().get();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -51,7 +51,7 @@ public class StackMicroServices {
             server.start();
             etcd.put(serviceInstanceKey, "http://" + host + ":9998/").send();
         } catch (IOException e) {
-            etcd.delete(serviceInstanceKey).send();
+            etcd.delete(serviceInstanceKey).send().get();
             e.printStackTrace();
             System.exit(1);
         }
