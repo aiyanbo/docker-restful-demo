@@ -7,7 +7,11 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
-import java.net.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URI;
 import java.util.Enumeration;
 import java.util.UUID;
 
@@ -19,7 +23,7 @@ import java.util.UUID;
  * @author Andy Ai
  */
 public class StackMicroServices {
-    public static void main(String[] args) throws SocketException, UnknownHostException {
+    public static void main(String[] args) throws Exception {
         InetAddress inetAddress = localInet4Address();
         String host = "0.0.0.0";
         if (inetAddress != null) {
@@ -29,19 +33,25 @@ public class StackMicroServices {
         final ResourceConfig config = new ResourceConfig();
         config.packages("org.jmotor.restlet");
         final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(uri, config);
+        final String instanceId = UUID.randomUUID().toString();
+        final String serviceInstanceKey = "registry/stacks/v1/" + instanceId;
+        final EtcdClient etcd = new EtcdClient(UriBuilder.fromUri("http://192.168.59.103/").port(4001).build());
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 server.shutdown();
+                try {
+                    etcd.delete(serviceInstanceKey).send();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         try {
             server.start();
-            final String instanceId = UUID.randomUUID().toString();
-            final String serviceInstanceKey = "registry/stacks/v1/" + instanceId;
-            final EtcdClient etcd = new EtcdClient(UriBuilder.fromUri("http://192.168.59.103/").port(4001).build());
             etcd.put(serviceInstanceKey, "http://" + host + ":9998/").send();
         } catch (IOException e) {
+            etcd.delete(serviceInstanceKey).send();
             e.printStackTrace();
             System.exit(1);
         }
