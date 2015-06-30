@@ -14,6 +14,9 @@ import java.net.SocketException;
 import java.net.URI;
 import java.util.Enumeration;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Component:
@@ -25,10 +28,7 @@ import java.util.UUID;
 public class StackMicroServices {
     public static void main(String[] args) throws Exception {
         InetAddress inetAddress = localInet4Address();
-        String host = "0.0.0.0";
-        if (inetAddress != null) {
-            host = inetAddress.getHostAddress();
-        }
+        final String host = inetAddress != null ? inetAddress.getHostAddress() : "0.0.0.0";
         final URI uri = UriBuilder.fromUri("http://" + host + "/").port(9998).build();
         final ResourceConfig config = new ResourceConfig();
         config.packages("org.jmotor.restlet");
@@ -47,9 +47,16 @@ public class StackMicroServices {
                 }
             }
         });
+        ScheduledExecutorService serviceRegistryScheduler = Executors.newSingleThreadScheduledExecutor();
         try {
             server.start();
-            etcd.put(serviceInstanceKey, "http://" + host + ":9998/").send();
+            serviceRegistryScheduler.scheduleAtFixedRate(() -> {
+                try {
+                    etcd.put(serviceInstanceKey, "http://" + host + ":9998/").ttl(5).send();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }, 0, 5, TimeUnit.SECONDS);
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
