@@ -52,7 +52,7 @@ public class StackMicroServices {
             server.start();
             serviceRegistryScheduler.scheduleAtFixedRate(() -> {
                 try {
-                    etcd.put(serviceInstanceKey, "http://" + host + ":9998/").ttl(5).send();
+                    etcd.put(serviceInstanceKey, "http://" + System.getenv("host") + ":9998/").ttl(5).send();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
