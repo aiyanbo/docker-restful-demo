@@ -8,7 +8,7 @@ ENV host 0.0.0.0
 
 ADD pom.xml /code/pom.xml
 ADD src /code/src
-ADD settings.xml /root/.m2/settings.xml
+#ADD settings.xml /root/.m2/settings.xml
 
 RUN ["mvn", "package"]
 
